@@ -219,7 +219,7 @@
     
 //    __block int count = 1000;
 //    
-//    dispatch_queue_t queue_concurrent = dispatch_queue_create("serial.queue", DISPATCH_QUEUE_CONCURRENT);
+//    dispatch_queue_t queue_concurrent = dispatch_queue_create("concurrent.queue", DISPATCH_QUEUE_CONCURRENT);
 //    dispatch_async(queue_concurrent, ^{
 //        dispatch_barrier_async(queue_concurrent, ^{
 //            for (int i = 0; i < 500; i++) {
