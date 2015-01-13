@@ -319,6 +319,22 @@
 //            }
 //        });
 //    });
+    
+    
+    /*
+    // ****************************************************
+    // dispatch_apply使用
+    // ****************************************************
+    
+    // 并发迭代，次序会乱
+    dispatch_apply(10, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^(size_t i) {
+        NSLog(@"count: %zu", i);
+    });
+    
+//    for (int i = 0; i < 10; i++) {
+//        NSLog(@"count: %d", i);
+//    }
+     */
 }
 
 - (void)downloadImageOperation:(NSString *)urlString
