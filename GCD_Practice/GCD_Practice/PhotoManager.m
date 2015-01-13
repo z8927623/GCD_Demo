@@ -10,7 +10,9 @@
 
 @implementation PhotoManager
 
-//// 不安全
+// ****************************************************
+// 不安全
+// ****************************************************
 //+ (instancetype)sharedManager
 //{
 //    static PhotoManager *sharedPhotoManager = nil;
@@ -30,7 +32,9 @@
 //    return sharedPhotoManager;
 //}
 
-//// 1
+// ****************************************************
+// way 1
+// ****************************************************
 //+ (instancetype)sharedManager
 //{
 //    static PhotoManager *sharedPhotoManager = nil;
@@ -51,7 +55,10 @@
 //    return sharedPhotoManager;
 //}
 
-// 2
+// ****************************************************
+// way 2
+// ****************************************************
+
 + (instancetype)sharedManager
 {
     static PhotoManager *sharedPhotoManager = nil;
