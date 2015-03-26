@@ -291,34 +291,69 @@
     });
     */
     
-    
+    /*
     // ****************************************************
     // dispatch_barrier使用
     // ****************************************************
 
     // 在并发队列上扮演一个串行式的瓶颈，相当于@synchronized(self)
-    // 1执行完成后再执行2
     
-//    __block int count = 1000;
-//    
-//    dispatch_queue_t queue_concurrent = dispatch_queue_create("concurrent.queue", DISPATCH_QUEUE_CONCURRENT);
-//    dispatch_async(queue_concurrent, ^{
-//        dispatch_barrier_async(queue_concurrent, ^{
-//            for (int i = 0; i < 500; i++) {
-//                count--;
-//                NSLog(@"1 count: %d", count);
-//            }
-//        });
-//    });
-//    
-//    dispatch_async(queue_concurrent, ^{
-//        dispatch_barrier_async(queue_concurrent, ^{
-//            for (int i = 0; i < 500; i++) {
-//                count--;
-//                NSLog(@"2 count: %d", count);
-//            }
-//        });
-//    });
+    // 1
+    dispatch_queue_t queue_concurrent = dispatch_queue_create("concurrent.queue", DISPATCH_QUEUE_CONCURRENT);
+    // 并行队列
+    dispatch_async(queue_concurrent, ^{
+        for (int i = 0; i < 100; i++) {
+            NSLog(@"iii: %d", i);
+        }
+    });
+    
+    dispatch_async(queue_concurrent, ^{
+        for (int j = 0; j < 100; j++) {
+            NSLog(@"jjj: %d", j);
+        }
+    });
+    // k必须在i和j执行之后再执行，，barrier里如同串行队列
+    dispatch_barrier_async(queue_concurrent, ^{
+        NSLog(@"如同串行队列");
+        for (int k = 0; k < 100; k++) {
+            NSLog(@"kkk: %d", k);
+        }
+    });
+    // 恢复并行队列
+    dispatch_async(queue_concurrent, ^{
+        for (int q = 0; q < 100; q++) {
+            NSLog(@"qqq: %d", q);
+        }
+    });
+    
+    
+    dispatch_async(queue_concurrent, ^{
+        for (int t = 0; t < 100; t++) {
+            NSLog(@"ttt: %d", t);
+        }
+    });
+    
+    // 2
+    // 1执行完成后再执行2
+    __block int count = 1000;
+    dispatch_async(queue_concurrent, ^{                 // 并行
+        dispatch_barrier_async(queue_concurrent, ^{     // 变回串行
+            for (int i = 0; i < 500; i++) {
+                count--;
+                NSLog(@"1 count: %d", count);
+            }
+        });
+    });
+    
+    dispatch_async(queue_concurrent, ^{
+        dispatch_barrier_async(queue_concurrent, ^{
+            for (int i = 0; i < 500; i++) {
+                count--;
+                NSLog(@"2 count: %d", count);
+            }
+        });
+    });
+    */
     
     
     /*
@@ -335,6 +370,53 @@
 //        NSLog(@"count: %d", i);
 //    }
      */
+    
+    
+    // ****************************************************
+    // dispatch_semaphore_t使用
+    // ****************************************************
+    
+    
+//    // 全局并发队列中加入数据，由于NSMutableArrary并不支持多线程，因此当多个线程同时操作数组的时候，可能会扰乱数组中的数据，可以用dispatch semaphore来解决
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    /*
+     * 创建一个信号量
+     *
+     * 将初始计数器设置为1， 使得一次只能有1个线程访问NSMutableArray对象。
+     */
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(1);
+    
+    NSMutableArray *arr = [[NSMutableArray alloc] init];
+    for (int i = 0; i < 1000; ++i) {
+        dispatch_async(queue, ^{
+            /*
+             * 等待信号量
+             *
+             * 一直等待，直到信号量计数器大于等于1。
+             */
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+           
+            /*
+             * 因为信号量计数器>=1，
+             * dispatch_semaphore_wait函数停止等待，计数器自动-1，流程继续
+             *
+             * 此例中，到这里的时候，计数器始终会变成0。
+             * 因为初始时为1，限定了一次只能有一个线程访问NSMutableArray对象。
+             * 
+             * 现在，在这里，你可以安全地更新数组了。
+             */
+            [arr addObject:[NSNumber numberWithInt:i]];
+            
+            /*
+             * 任务完成后，要调用dispatch_semaphore_signal函数，使计数器+1
+             * 如果还有其他线程在等待信号量，第一个进入等待状态的线程得到通知后就可以开始了运行了。
+             */
+            dispatch_semaphore_signal(semaphore);
+        });
+    }
+    
+    NSLog(@"arr: %@", arr);
+    
 }
 
 - (void)downloadImageOperation:(NSString *)urlString
