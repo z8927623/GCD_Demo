@@ -291,34 +291,69 @@
     });
     */
     
-    
+    /*
     // ****************************************************
     // dispatch_barrier使用
     // ****************************************************
 
     // 在并发队列上扮演一个串行式的瓶颈，相当于@synchronized(self)
-    // 1执行完成后再执行2
     
-//    __block int count = 1000;
-//    
-//    dispatch_queue_t queue_concurrent = dispatch_queue_create("concurrent.queue", DISPATCH_QUEUE_CONCURRENT);
-//    dispatch_async(queue_concurrent, ^{
-//        dispatch_barrier_async(queue_concurrent, ^{
-//            for (int i = 0; i < 500; i++) {
-//                count--;
-//                NSLog(@"1 count: %d", count);
-//            }
-//        });
-//    });
-//    
-//    dispatch_async(queue_concurrent, ^{
-//        dispatch_barrier_async(queue_concurrent, ^{
-//            for (int i = 0; i < 500; i++) {
-//                count--;
-//                NSLog(@"2 count: %d", count);
-//            }
-//        });
-//    });
+    // 1
+    dispatch_queue_t queue_concurrent = dispatch_queue_create("concurrent.queue", DISPATCH_QUEUE_CONCURRENT);
+    // 并行队列
+    dispatch_async(queue_concurrent, ^{
+        for (int i = 0; i < 100; i++) {
+            NSLog(@"iii: %d", i);
+        }
+    });
+    
+    dispatch_async(queue_concurrent, ^{
+        for (int j = 0; j < 100; j++) {
+            NSLog(@"jjj: %d", j);
+        }
+    });
+    // k必须在i和j执行之后再执行，，barrier里如同串行队列
+    dispatch_barrier_async(queue_concurrent, ^{
+        NSLog(@"如同串行队列");
+        for (int k = 0; k < 100; k++) {
+            NSLog(@"kkk: %d", k);
+        }
+    });
+    // 恢复并行队列
+    dispatch_async(queue_concurrent, ^{
+        for (int q = 0; q < 100; q++) {
+            NSLog(@"qqq: %d", q);
+        }
+    });
+    
+    
+    dispatch_async(queue_concurrent, ^{
+        for (int t = 0; t < 100; t++) {
+            NSLog(@"ttt: %d", t);
+        }
+    });
+    
+    // 2
+    // 1执行完成后再执行2
+    __block int count = 1000;
+    dispatch_async(queue_concurrent, ^{                 // 并行
+        dispatch_barrier_async(queue_concurrent, ^{     // 变回串行
+            for (int i = 0; i < 500; i++) {
+                count--;
+                NSLog(@"1 count: %d", count);
+            }
+        });
+    });
+    
+    dispatch_async(queue_concurrent, ^{
+        dispatch_barrier_async(queue_concurrent, ^{
+            for (int i = 0; i < 500; i++) {
+                count--;
+                NSLog(@"2 count: %d", count);
+            }
+        });
+    });
+    */
     
     
     
